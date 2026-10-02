@@ -127,3 +127,33 @@
     }),
   );
 })();
+
+// Enchente: cada gota que termina de cair sobe 2% da altura da tela.
+(() => {
+  const rain = document.querySelector(".rain");
+  if (!rain) return;
+  const flood = document.createElement("div");
+  flood.className = "flood";
+  flood.setAttribute("aria-hidden", "true");
+  for (let i = 0; i < 12; i++) {
+    const bubble = document.createElement("i");
+    bubble.className = "bubble";
+    bubble.style.cssText = `left:${Math.random() * 100}%;--size:${4 + Math.random() * 9}px;--time:${7 + Math.random() * 8}s;--delay:${-Math.random() * 12}s`;
+    flood.append(bubble);
+  }
+  const back = document.createElement("i");
+  back.className = "wave-back";
+  flood.append(back);
+  document.body.prepend(flood);
+  let level = 0;
+  let calm;
+  rain.addEventListener("animationiteration", () => {
+    if (level >= 1) return;
+    level = Math.min(1, level + 0.02);
+    flood.style.setProperty("--level", level);
+    flood.classList.add("splash");
+    clearTimeout(calm);
+    calm = setTimeout(() => flood.classList.remove("splash"), 700);
+    if (level >= 1) document.documentElement.dataset.flood = "full";
+  });
+})();

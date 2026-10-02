@@ -10,7 +10,7 @@
   }
   const reveal = [
     ...document.querySelectorAll(
-      ".section-head, .quotes blockquote, .gallery-grid figure, .step, .faq-list article, .service, .service-featured, .garden-strip .photo, .comparison-cover figure, .studio-photo",
+      ".section-head, .sign, .meter, .quotes blockquote, .gallery-grid figure, .step, .faq-list article, .service, .service-featured, .garden-strip .photo, .comparison-cover figure, .studio-photo",
     ),
   ];
   reveal.forEach((el, i) => {
@@ -74,5 +74,56 @@
   // Anchor navigation and keyboard focus must never land on hidden content.
   addEventListener("focusin", (event) =>
     event.target.closest("[data-reveal]")?.classList.add("is-visible"),
+  );
+})();
+
+// Goteiras: cada gota cai do topo do hero e abre uma onda na faixa de água.
+(() => {
+  const wrap = document.querySelector(".hero > .wrap");
+  const pool = wrap?.querySelector(".conversation-bottom");
+  if (!pool) return;
+  const rain = document.createElement("div");
+  rain.className = "rain";
+  rain.setAttribute("aria-hidden", "true");
+  [[3, 0], [7, 1.4], [11, 2.5], [89, 0.7], [93, 2], [97, 3]].forEach(([x, delay]) => {
+    for (const [el, parent] of [[document.createElement("i"), rain], [document.createElement("i"), pool]]) {
+      el.className = parent === rain ? "drop" : "ripple";
+      el.style.cssText = `left:${x}%;animation-delay:${delay}s`;
+      parent.append(el);
+    }
+  });
+  wrap.prepend(rain);
+  const measure = () =>
+    rain.style.setProperty(
+      "--fall",
+      `${pool.getBoundingClientRect().top - rain.getBoundingClientRect().top + 8}px`,
+    );
+  measure();
+  addEventListener("resize", measure);
+  document.fonts?.ready.then(measure);
+  pool.addEventListener("pointerdown", (event) => {
+    if (document.documentElement.dataset.motion !== "enabled") return;
+    const box = pool.getBoundingClientRect();
+    const ring = document.createElement("i");
+    ring.className = "tap-ripple";
+    ring.style.cssText = `left:${event.clientX - box.left}px;top:${event.clientY - box.top}px`;
+    ring.addEventListener("animationend", () => ring.remove());
+    pool.append(ring);
+  });
+})();
+
+// Teste do hidrômetro: a resposta mostra o próximo passo e muda o giro do ponteiro.
+(() => {
+  const test = document.querySelector("[data-meter]");
+  if (!test) return;
+  const buttons = test.querySelectorAll("[data-answer]");
+  buttons.forEach((button) =>
+    button.addEventListener("click", () => {
+      test.dataset.state = button.dataset.answer;
+      buttons.forEach((b) => b.setAttribute("aria-pressed", b === button));
+      test.querySelectorAll(".meter-result").forEach((r) => {
+        r.hidden = r.dataset.result !== button.dataset.answer;
+      });
+    }),
   );
 })();
